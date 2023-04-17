@@ -3,6 +3,7 @@
 """
 from typing import List, Tuple
 import csv
+import math
 
 
 def index_range(page: int, page_size: int) -> Tuple[int, int]:
@@ -16,15 +17,21 @@ def index_range(page: int, page_size: int) -> Tuple[int, int]:
 class Server:
     """Server class to paginate a database of popular baby names.
     """
-    data = []
+    DATA_FILE = "Popular_Baby_Names.csv"
 
     def __init__(self):
-        """Initialize the server.
+        self.__dataset = None
+
+    def dataset(self) -> List[List]:
+        """Cached dataset
         """
-        with open('Popular_Baby_Names.csv') as f:
-            reader = csv.reader(f)
-            next(reader)
-            self.data = [row for row in reader]
+        if self.__dataset is None:
+            with open(self.DATA_FILE) as f:
+                reader = csv.reader(f)
+                dataset = [row for row in reader]
+            self.__dataset = dataset[1:]
+
+        return self.__dataset
 
     def get_page(self, page: int = 1, page_size: int = 10) -> List[List]:
         """Return the appropriate page of the dataset (i.e. the correct
@@ -33,6 +40,6 @@ class Server:
         assert isinstance(page, int) and isinstance(page_size, int)
         assert page > 0 and page_size > 0
         start, end = index_range(page, page_size)
-        if start >= len(self.data):
+        if start >= len(self.dataset()):
             return []
-        return self.data[start:end]
+        return self.dataset()[start:end]
