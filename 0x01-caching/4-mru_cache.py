@@ -18,7 +18,7 @@ class MRUCache(BaseCaching):
         """
         if key and item:
             if key in self.cache_data:
-                self.mru.remove(key)
+                self.cache_data[key] = item
             elif len(self.cache_data) >= BaseCaching.MAX_ITEMS:
                 print("DISCARD: {}".format(self.mru[-1]))
                 del self.cache_data[self.mru[-1]]
