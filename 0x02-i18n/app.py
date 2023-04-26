@@ -2,8 +2,9 @@
 '''Task 1's module.
 '''
 from flask import Flask, render_template, request, g
-from flask_babel import Babel
+from flask_babel import Babel, format_datetime
 from typing import Dict, Union
+import pytz
 
 
 app = Flask(__name__)
@@ -50,21 +51,31 @@ def get_locale() -> str:
     locale = request.args.get('locale')
     if locale and locale in app.config['LANGUAGES']:
         return locale
-    if g.user:
-        locale = g.user['locale']
-        if locale and locale in app.config['LANGUAGES']:
-            return locale
-
+    if g.user and g.user['locale'] in app.config['LANGUAGES']:
+        return g.user['locale']
     headers = request.headers.get('Accept-Language')
     if headers:
         return headers.split(',')[0]
     return request.accept_languages.best_match(app.config['LANGUAGES'])
 
 
+@babel.timezoneselector
+def get_timezone() -> str:
+    '''Get timezone from request.'''
+    timezone = request.args.get('timezone')
+    if not timezone and g.user and g.user['timezone']:
+        timezone = g.user['timezone']
+    try:
+        return pytz.timezone(timezone).zone
+    except pytz.exceptions.UnknownTimeZoneError:
+        return app.config['BABEL_DEFAULT_TIMEZONE']
+
+
 @app.route('/', methods=['GET'], strict_slashes=False)
 def index() -> str:
     '''Basic Flask app.'''
-    return render_template('6-index.html')
+    g.time = format_datetime()
+    return render_template('index.html')
 
 
 if __name__ == '__main__':
